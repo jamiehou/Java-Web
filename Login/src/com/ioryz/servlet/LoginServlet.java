@@ -46,6 +46,20 @@ public class LoginServlet extends HttpServlet {
         String password = request.getParameter("password");
         System.out.println("userName=>" + userName + "; password=>" + password);
 
+        HttpSession session = request.getSession();
+
+        if (userName == null || "".equals(userName)) {
+            session.setAttribute("ERROR_MSG", "User name is required!");
+            request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
+            return;
+        }
+
+        if (password == null || "".equals(password)) {
+            session.setAttribute("ERROR_MSG", "Password is required!");
+            request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
+            return;
+        }
+
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
@@ -64,14 +78,19 @@ public class LoginServlet extends HttpServlet {
                 String passwordInDB = rs.getString("password");
                 System.out.println("***id=>" + id + ", username=>" + userNameInDB + ", password=>" + passwordInDB);
                 if (password != null && password.equals(passwordInDB)) {
-                    HttpSession session = request.getSession();
                     User user = new User();
                     user.setId(id);
                     user.setUserName(userNameInDB);
                     user.setPassword(passwordInDB);
                     session.setAttribute("USER", user);
                     request.getRequestDispatcher("/WEB-INF/jsp/welcome.jsp").forward(request, response);
+                } else {
+                    session.setAttribute("ERROR_MSG", "Password is incorrect!");
+                    request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
                 }
+            } else {
+                session.setAttribute("ERROR_MSG", "User does not exist!");
+                request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
             }
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
