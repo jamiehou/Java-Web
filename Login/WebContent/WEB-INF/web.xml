@@ -8,7 +8,7 @@
     <description></description>
     <display-name>LoginServlet</display-name>
     <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>com.ioryz.servlet.LoginServlet</servlet-class>
+    <servlet-class>com.ioryz.login.servlet.LoginServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LoginServlet</servlet-name>
@@ -17,5 +17,9 @@
   <error-page>
     <error-code>404</error-code>
     <location>/404.html</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/500.html</location>
   </error-page>
 </web-app>

@@ -1,4 +1,4 @@
-package com.ioryz.servlet;
+package com.ioryz.login.model;
 
 public class User {
 

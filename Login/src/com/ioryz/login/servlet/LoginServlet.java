@@ -1,17 +1,22 @@
-package com.ioryz.servlet;
+package com.ioryz.login.servlet;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import com.ioryz.login.exception.DBException;
+import com.ioryz.login.model.User;
+import com.ioryz.login.util.DBUtil;
 
 /**
  * Servlet implementation class LoginServlet
@@ -47,15 +52,18 @@ public class LoginServlet extends HttpServlet {
         System.out.println("userName=>" + userName + "; password=>" + password);
 
         HttpSession session = request.getSession();
+        Map<String, String> errorMessages = new HashMap<String, String>();
 
         if (userName == null || "".equals(userName)) {
-            session.setAttribute("ERROR_MSG", "User name is required!");
-            request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
-            return;
+            errorMessages.put("username", "User name is required!");
         }
 
         if (password == null || "".equals(password)) {
-            session.setAttribute("ERROR_MSG", "Password is required!");
+            errorMessages.put("password", "Password is required!");
+        }
+
+        if (!errorMessages.isEmpty()) {
+            session.setAttribute("ERROR", errorMessages);
             request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
             return;
         }
@@ -63,55 +71,44 @@ public class LoginServlet extends HttpServlet {
         Connection conn = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+        User user = null;
 
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/test";
-            conn = DriverManager.getConnection(url, "root", "welcome123_");
+            conn = DBUtil.getConnection();
             pstmt = conn.prepareStatement("SELECT * FROM login WHERE user_name=?");
             pstmt.setString(1, userName);
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
+                user = new User();
                 int id = rs.getInt("id");
                 String userNameInDB = rs.getString("user_name");
                 String passwordInDB = rs.getString("password");
-                System.out.println("***id=>" + id + ", username=>" + userNameInDB + ", password=>" + passwordInDB);
-                if (password != null && password.equals(passwordInDB)) {
-                    User user = new User();
-                    user.setId(id);
-                    user.setUserName(userNameInDB);
-                    user.setPassword(passwordInDB);
-                    session.setAttribute("USER", user);
-                    request.getRequestDispatcher("/WEB-INF/jsp/welcome.jsp").forward(request, response);
-                } else {
-                    session.setAttribute("ERROR_MSG", "Password is incorrect!");
-                    request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
-                }
-            } else {
-                session.setAttribute("ERROR_MSG", "User does not exist!");
-                request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
+                user.setId(id);
+                user.setUserName(userNameInDB);
+                user.setPassword(passwordInDB);
             }
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
+            throw new DBException();
         } finally {
-            try {
-                if (rs != null) {
-                    rs.close();
-                }
-
-                if (pstmt != null) {
-                    pstmt.close();
-                }
-
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            DBUtil.close(rs, pstmt, conn);
         }
 
+        if (user == null) {
+            errorMessages.put("username", "User does not exist!");
+        } else if (password.equals(user.getPassword())) {
+            session.setAttribute("USER", user);
+            request.getRequestDispatcher("/WEB-INF/jsp/welcome.jsp").forward(request, response);
+            return;
+        } else {
+            errorMessages.put("password", "Password is incorrect!");
+        }
+
+        if (!errorMessages.isEmpty()) {
+            session.setAttribute("ERROR", errorMessages);
+            request.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(request, response);
+        }
     }
 
 }
