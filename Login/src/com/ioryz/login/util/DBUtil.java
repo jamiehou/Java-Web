@@ -13,9 +13,9 @@ public class DBUtil {
     public static Connection getConnection() {
         Connection conn = null;
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/test";
-            conn = DriverManager.getConnection(url, "root", "welcome123_");
+            Class.forName(PropertyUtil.getPropertyByName("jdbc.driver"));
+            String url = PropertyUtil.getPropertyByName("jdbc.url");
+            conn = DriverManager.getConnection(url, PropertyUtil.getPropertyByName("jdbc.user"), PropertyUtil.getPropertyByName("jdbc.password"));
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
             throw new DBException();

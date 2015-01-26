@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.ioryz.login.model.User" %>
+<%@ page import="com.ioryz.login.Constants" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,7 +8,7 @@
 <title>Welcome</title>
 </head>
 <body>
-<% User user = (User)session.getAttribute("USER"); %>
+<% User user = (User)session.getAttribute(Constants.USER); %>
     Welcome, <%= user.getUserName() %> !
 </body>
 </html>

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.HashMap" %>
+<%@ page import="com.ioryz.login.Constants" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -44,9 +45,13 @@ function validate() {
 </script>
 <body>
   <form action="login" method="post" id="loginForm">
-    <% Map<String, String> errorMsg = (HashMap<String, String>)session.getAttribute("ERROR");
+    <% Map<String, String> errorMsg = (HashMap<String, String>)session.getAttribute(Constants.ERROR);
     if (errorMsg == null) {
         errorMsg = new HashMap<String, String>();
+    }
+    String bizError = (String)session.getAttribute(Constants.BIZ_ERROR);
+    if (bizError != null) {
+        out.print(bizError + "</br>");
     }
     %>
     Username:<input type="text" id="userName" name="userName"/>
